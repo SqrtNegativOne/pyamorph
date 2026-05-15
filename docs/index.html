@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PyAMorph — Implicit Geometry & Morphometric Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:      #0a1628;
+      --navy-mid:  #0f2044;
+      --navy-light:#162a55;
+      --blue:      #2563eb;
+      --blue-soft: #3b82f6;
+      --gold:      #c9a84c;
+      --gold-soft: #e2c47a;
+      --cream:     #f5f1ea;
+      --cream-mid: #ede8de;
+      --cream-dark:#e0d9cc;
+      --text:      #1a2340;
+      --text-muted:#4a5568;
+      --mono:      'JetBrains Mono', monospace;
+      --serif:     'EB Garamond', Georgia, serif;
+      --sans:      'DM Sans', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--cream);
+      line-height: 1.82;
+    }
+
+    /* ── Typography helpers ───────────────────────────────────── */
+    .serif     { font-family: var(--serif); }
+    .mono      { font-family: var(--mono); }
+    .gold      { color: var(--gold); }
+    .muted     { color: var(--text-muted); }
+    .italic    { font-style: italic; }
+
+    /* ── Sticky nav ───────────────────────────────────────────── */
+    #nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 22, 40, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+      display: flex; align-items: center;
+      padding: 0 40px; height: 54px; gap: 28px;
+    }
+
+    #nav .logo {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      color: var(--gold);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      margin-right: auto;
+    }
+
+    #nav a:not(.logo) {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    #nav a:not(.logo):hover { color: var(--gold-soft); }
+
+    #nav .nav-btn {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--navy);
+      background: var(--gold);
+      padding: 6px 14px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    #nav .nav-btn:hover { background: var(--gold-soft); }
+
+    @media (max-width: 760px) {
+      #nav a:not(.logo):not(.nav-btn) { display: none; }
+      #nav { padding: 0 20px; }
+    }
+
+    /* ── Hero ─────────────────────────────────────────────────── */
+    #hero {
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 40%, rgba(37, 99, 235, 0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 60%, rgba(201, 168, 76, 0.10) 0%, transparent 55%),
+        linear-gradient(160deg, var(--navy) 0%, #0d1e3e 50%, #0a1628 100%);
+      padding: 100px 40px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 19v2M19 20h2' stroke='white' stroke-width='1' opacity='0.025'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    .hero-kicker {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 18px;
+      opacity: 0.9;
+    }
+
+    .hero-title {
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 400;
+      color: #fff;
+      line-height: 1.18;
+      max-width: 860px;
+      margin: 0 auto 16px;
+    }
+
+    .hero-title em { color: var(--gold); font-style: italic; }
+
+    .hero-subtitle {
+      font-family: var(--sans);
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.62);
+      max-width: 680px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    .hero-authors {
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.78);
+      margin-bottom: 8px;
+    }
+    .hero-authors sup { color: var(--gold); font-size: 0.65rem; }
+
+    .hero-affiliations {
+      font-family: var(--sans);
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 28px;
+      display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;
+    }
+
+    .hero-divider {
+      width: 48px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 0 auto 24px;
+    }
+
+    .hero-tags {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      margin-bottom: 36px;
+    }
+
+    .hero-tag {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      border: 1px solid rgba(201,168,76,0.3);
+      padding: 4px 12px;
+      border-radius: 2px;
+    }
+
+    .hero-btns {
+      display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      font-family: var(--mono); font-size: 0.75rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background: var(--gold); color: var(--navy);
+      padding: 11px 26px; border-radius: 3px;
+      text-decoration: none; font-weight: 500;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--gold-soft); transform: translateY(-1px); }
+
+    .btn-outline {
+      font-family: var(--mono); font-size: 0.75rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background: transparent;
+      color: rgba(255,255,255,0.75);
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 11px 26px; border-radius: 3px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s, transform 0.15s;
+    }
+    .btn-outline:hover {
+      border-color: var(--gold-soft);
+      color: var(--gold-soft);
+      transform: translateY(-1px);
+    }
+
+    /* ── Content container ────────────────────────────────────── */
+    .content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    @media (max-width: 760px) {
+      .content { padding: 0 22px; }
+    }
+
+    /* ── Section header style ─────────────────────────────────── */
+    .section-head {
+      display: flex; align-items: baseline; gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .section-num {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-family: var(--serif);
+      font-size: clamp(1.5rem, 3vw, 2.1rem);
+      font-weight: 400;
+      color: var(--navy);
+      line-height: 1.2;
+    }
+
+    .section-lead {
+      font-size: 0.97rem;
+      color: var(--text-muted);
+      max-width: 760px;
+      margin-bottom: 36px;
+      line-height: 1.82;
+    }
+
+    .subsection-title {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      color: var(--navy);
+      border-left: 3px solid var(--gold);
+      padding-left: 12px;
+      margin-bottom: 12px;
+      margin-top: 28px;
+    }
+
+    /* ── Abstract band ────────────────────────────────────────── */
+    #abstract {
+      background: var(--navy-mid);
+      padding: 64px 40px;
+    }
+
+    .abstract-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    .abstract-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding-top: 4px;
+    }
+
+    .abstract-text {
+      font-family: var(--serif);
+      font-size: 1.08rem;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.9;
+    }
+
+    .abstract-text p + p { margin-top: 1em; }
+
+    @media (max-width: 640px) {
+      .abstract-inner { grid-template-columns: 1fr; gap: 16px; }
+      #abstract { padding: 48px 22px; }
+    }
+
+    /* ── Regular sections ─────────────────────────────────────── */
+    .section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--cream-dark);
+    }
+
+    .section:last-child { border-bottom: none; }
+
+    /* ── Package feature cards ────────────────────────────────── */
+    .pkg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 32px;
+    }
+
+    .pkg-card {
+      background: #fff;
+      border: 1px solid var(--cream-dark);
+      border-radius: 6px;
+      padding: 24px;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .pkg-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(10,22,40,0.10);
+    }
+
+    .pkg-badge {
+      position: absolute; top: 16px; right: 16px;
+      font-family: var(--mono); font-size: 0.65rem;
+      background: rgba(37,99,235,0.1);
+      color: var(--blue);
+      padding: 2px 8px; border-radius: 10px;
+    }
+
+    .pkg-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-soft) 100%);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+      font-size: 1.2rem;
+    }
+
+    .pkg-name {
+      font-family: var(--mono); font-size: 0.9rem;
+      color: var(--navy); font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .pkg-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* ── Figure cards ─────────────────────────────────────────── */
+    .fig-card {
+      background: #fff;
+      border: 1px solid var(--cream-dark);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 28px;
+    }
+
+    .fig-img-wrap {
+      background: var(--cream);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .fig-img-wrap img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      border-radius: 3px;
+    }
+
+    .img-full { max-width: 100%; }
+    .img-md   { max-width: 720px; }
+    .img-sm   { max-width: 480px; }
+
+    .fig-caption {
+      padding: 14px 20px;
+      border-top: 1px solid var(--cream-dark);
+      display: flex; gap: 10px; align-items: baseline;
+    }
+
+    .fig-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+
+    .fig-desc {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Two-col figure grid ──────────────────────────────────── */
+    .fig-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 28px;
+    }
+
+    @media (max-width: 700px) {
+      .fig-grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* ── Code blocks ──────────────────────────────────────────── */
+    .code-wrap {
+      margin-top: 20px;
+      background: var(--navy);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(201,168,76,0.2);
+    }
+
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 18px;
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .code-lang {
+      font-family: var(--mono); font-size: 0.68rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.8;
+    }
+
+    .code-dots { display: flex; gap: 6px; }
+    .code-dots span {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+    }
+
+    pre {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.7;
+      color: #c9d8f0;
+      padding: 20px 20px;
+      overflow-x: auto;
+    }
+
+    pre .cm  { color: #6a9ec7; }  /* comment */
+    pre .kw  { color: #7ecce6; }  /* keyword */
+    pre .st  { color: #9ee4a4; }  /* string */
+    pre .nb  { color: #f0b97a; }  /* number / builtin */
+    pre .fn  { color: #9dcbf8; }  /* function */
+
+    /* ── Info box ─────────────────────────────────────────────── */
+    .info-box {
+      background: rgba(37, 99, 235, 0.06);
+      border-left: 3px solid var(--blue-soft);
+      border-radius: 0 4px 4px 0;
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 20px;
+    }
+
+    /* ── Pipeline steps ───────────────────────────────────────── */
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+      margin-top: 32px;
+      border: 1px solid var(--cream-dark);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .pipe-step {
+      padding: 24px 20px;
+      background: #fff;
+      border-right: 1px solid var(--cream-dark);
+      position: relative;
+    }
+    .pipe-step:last-child { border-right: none; }
+
+    .pipe-num {
+      font-family: var(--mono); font-size: 0.68rem;
+      letter-spacing: 0.1em; color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .pipe-title {
+      font-family: var(--serif); font-size: 1rem;
+      color: var(--navy); margin-bottom: 6px;
+    }
+
+    .pipe-desc {
+      font-size: 0.83rem; color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ── TPMS grid ────────────────────────────────────────────── */
+    .tpms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .tpms-card {
+      background: #fff;
+      border: 1px solid var(--cream-dark);
+      border-radius: 6px;
+      padding: 20px 18px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .tpms-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(10,22,40,0.08);
+    }
+
+    .tpms-name {
+      font-family: var(--mono); font-size: 0.82rem;
+      color: var(--blue-soft); margin-bottom: 6px;
+    }
+
+    .tpms-label {
+      font-family: var(--serif); font-size: 0.95rem;
+      color: var(--navy); margin-bottom: 6px;
+    }
+
+    .tpms-eq {
+      font-family: var(--mono); font-size: 0.7rem;
+      color: var(--text-muted); font-style: italic;
+    }
+
+    /* ── Metrics table ────────────────────────────────────────── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1px;
+      background: var(--cream-dark);
+      border: 1px solid var(--cream-dark);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 28px;
+    }
+
+    .metric-cell {
+      background: #fff;
+      padding: 20px 16px;
+      text-align: center;
+    }
+
+    .metric-badge {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+      color: var(--navy);
+      font-family: var(--mono); font-size: 0.65rem; font-weight: 500;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 10px;
+    }
+
+    .metric-name {
+      font-family: var(--serif); font-size: 0.9rem;
+      color: var(--navy); font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .metric-desc {
+      font-size: 0.78rem; color: var(--text-muted);
+    }
+
+    /* ── Visualization band ───────────────────────────────────── */
+    #results {
+      background: #edf2fb;
+      padding: 72px 40px;
+    }
+
+    /* ── Install band ─────────────────────────────────────────── */
+    #install {
+      background: var(--cream-mid);
+      padding: 72px 40px;
+    }
+
+    .install-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-top: 32px;
+    }
+
+    @media (max-width: 700px) {
+      .install-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 32px 40px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+    }
+
+    footer a { color: var(--gold); text-decoration: none; }
+
+    /* ── Fade-up animation ────────────────────────────────────── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     NAV
+═══════════════════════════════════════════════════ -->
+<nav id="nav">
+  <a href="#hero" class="logo">pySdf</a>
+  <a href="#abstract">Abstract</a>
+  <a href="#packages">Packages</a>
+  <a href="#gallery">Gallery</a>
+  <a href="#metamaterials">Metamaterials</a>
+  <a href="#methodology">Methodology</a>
+  <a href="#results">Results</a>
+  <a href="#install">Install</a>
+  <a href="https://github.com/HARSHDIPSAHA/pySdf" class="nav-btn" target="_blank">GitHub ↗</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════ -->
+<section id="hero">
+  <p class="hero-kicker">INCAM 2026 · Submitted</p>
+  <h1 class="hero-title">
+    PyAMorph: <em>High-Fidelity Implicit Geometry</em><br>Modeling and Morphometric Analysis<br>on Adaptive Meshes
+  </h1>
+  <p class="hero-subtitle">
+    A massively parallel Python framework combining Signed Distance Functions,
+    Constructive Solid Geometry, and AMReX Adaptive Mesh Refinement for
+    simulation-ready microstructure analysis.
+  </p>
+
+  <div class="hero-divider"></div>
+
+  <p class="hero-authors">
+    Harshdip Saha<sup>a</sup> &nbsp;·&nbsp;
+    Anshika Singh<sup>a</sup> &nbsp;·&nbsp;
+    Zeeshan Ahmad<sup>a</sup> &nbsp;·&nbsp;
+    Ark Malhotra<sup>a</sup> &nbsp;·&nbsp;
+    Rashmi Chaudhry<sup>a</sup> &nbsp;·&nbsp;
+    Pradeep Kumar Seshadri<sup>b,*</sup>
+  </p>
+  <div class="hero-affiliations">
+    <span><sup>a</sup> Netaji Subhas University of Technology, Delhi</span>
+    <span><sup>b</sup> Indian Institute of Technology, Madras</span>
+  </div>
+
+  <div class="hero-tags">
+    <span class="hero-tag">Signed Distance Functions</span>
+    <span class="hero-tag">Constructive Solid Geometry</span>
+    <span class="hero-tag">Chan-Vese Segmentation</span>
+    <span class="hero-tag">Adaptive Mesh Refinement</span>
+    <span class="hero-tag">Microstructure Analysis</span>
+    <span class="hero-tag">TPMS Metamaterials</span>
+  </div>
+
+  <div class="hero-btns">
+    <a href="https://github.com/HARSHDIPSAHA/pySdf" class="btn-primary" target="_blank">View on GitHub</a>
+    <a href="#abstract" class="btn-outline">Read Paper</a>
+    <a href="#install" class="btn-outline">Get Started</a>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     ABSTRACT
+═══════════════════════════════════════════════════ -->
+<section id="abstract">
+  <div class="abstract-inner">
+    <div class="abstract-label">Abstract</div>
+    <div class="abstract-text">
+      <p>
+        The macroscopic performance of heterogeneous systems — such as the regression rates of
+        solid propellants or the stiffness of architected metamaterials — is intrinsically linked
+        to the topology of microstructures. In these domains, geometric fidelity directly determines
+        the accuracy of predicted physics, including flame-front evolution and localised stress concentrations.
+        Current computational pipelines either impose prohibitive memory costs via uniform fine grids,
+        or sacrifice resolution through aggressive coarsening.
+      </p>
+      <p>
+        To bypass this resolution-memory trade-off, we introduce <strong>PyAMorph</strong>, a massively
+        parallel adaptive framework for multi-source implicit modelling and morphometry. Utilising Signed
+        Distance Functions (SDFs) within a unified Constructive Solid Geometry (CSG) environment, the
+        framework integrates disparate data sources — including noisy volumetric images, STL manifolds,
+        and analytical functions. By building on hierarchical AMReX MultiFab structures with Adaptive
+        Mesh Refinement, the zero-level set is resolved at high fidelity while bulk phases remain coarser,
+        enabling scalable domain decomposition without memory bottlenecks.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     PACKAGES
+═══════════════════════════════════════════════════ -->
+<section id="packages">
+  <div class="content section">
+    <div class="section-head">
+      <span class="section-num mono">01</span>
+      <h2 class="section-title serif">Package Overview</h2>
+    </div>
+    <p class="section-lead">
+      pySdf is organised into four modular packages, each with a consistent operator-based API.
+      All geometry classes support <code>|</code> (union), <code>-</code> (subtraction), and
+      <code>/</code> (intersection) operators, and produce NumPy arrays or AMReX MultiFabs.
+    </p>
+
+    <div class="pkg-grid">
+      <div class="pkg-card fade-up">
+        <span class="pkg-badge">~50 shapes</span>
+        <div class="pkg-icon">◈</div>
+        <p class="pkg-name">sdf2d</p>
+        <p class="pkg-desc">
+          2D geometry classes, grid sampling, and optional AMReX MultiFab output.
+          Includes <code>Circle2D</code>, <code>Box2D</code>, <code>Hexagon2D</code>, and dozens more.
+        </p>
+      </div>
+
+      <div class="pkg-card fade-up">
+        <span class="pkg-badge">~30 shapes</span>
+        <div class="pkg-icon">◉</div>
+        <p class="pkg-name">sdf3d</p>
+        <p class="pkg-desc">
+          3D geometry classes, TPMS metamaterials, spatial warp operators, and AMReX output.
+          Includes <code>Sphere3D</code>, <code>Box3D</code>, <code>Torus3D</code>, and lattice structures.
+        </p>
+      </div>
+
+      <div class="pkg-card fade-up">
+        <span class="pkg-badge">STL → SDF</span>
+        <div class="pkg-icon">△</div>
+        <p class="pkg-name">stl2sdf</p>
+        <p class="pkg-desc">
+          Convert any watertight STL mesh into a composable <code>SDF3D</code> using the
+          Ericson closest-point algorithm and Möller–Trumbore sign detection. Pure NumPy.
+        </p>
+      </div>
+
+      <div class="pkg-card fade-up">
+        <span class="pkg-badge">Image → SDF</span>
+        <div class="pkg-icon">⬡</div>
+        <p class="pkg-name">img2sdf</p>
+        <p class="pkg-desc">
+          2D image or 3D volume → SDF via True 3D Robust Chan-Vese segmentation.
+          Computes morphometric descriptors: volume, surface area, sphericity, curvature, and more.
+        </p>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:28px;">
+      <strong>Sign convention:</strong> &nbsp;<code>φ &lt; 0</code> inside the solid,
+      &nbsp;<code>φ = 0</code> on the surface, &nbsp;<code>φ &gt; 0</code> outside.
+      Primitive analytic shapes are true SDFs (<code>|∇φ| = 1</code>).
+      After boolean operations or image-derived fields the result is a levelset.
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     GALLERY
+═══════════════════════════════════════════════════ -->
+<section id="gallery">
+  <div class="content section">
+    <div class="section-head">
+      <span class="section-num mono">02</span>
+      <h2 class="section-title serif">Shape Library</h2>
+    </div>
+    <p class="section-lead">
+      All shapes share a uniform operator-based composition API. Evaluate any composition
+      onto a regular grid via <code>.to_numpy(bounds, resolution)</code>, or onto an
+      AMReX MultiFab via <code>.fill(grid)</code>.
+    </p>
+
+    <h3 class="subsection-title">2D Primitives</h3>
+    <div class="fig-card fade-up">
+      <div class="fig-img-wrap">
+        <img src="gallery_2d.png" class="img-full" alt="2D SDF gallery showing ~50 primitive shapes" />
+      </div>
+      <div class="fig-caption">
+        <span class="fig-label">FIG 2.1</span>
+        <span class="fig-desc">
+          ~50 two-dimensional primitives. Blue = inside (φ &lt; 0), red = outside (φ &gt; 0),
+          white contour = surface (φ = 0). Each panel is an independent <code>SDF2D</code> instance.
+        </span>
+      </div>
+    </div>
+
+    <h3 class="subsection-title" style="margin-top:36px;">3D Primitives</h3>
+    <div class="fig-card fade-up">
+      <div class="fig-img-wrap">
+        <img src="gallery_3d.png" class="img-full" alt="3D SDF gallery showing ~30 primitive shapes as gold isosurfaces" />
+      </div>
+      <div class="fig-caption">
+        <span class="fig-label">FIG 2.2</span>
+        <span class="fig-desc">
+          ~30 three-dimensional primitives. Gold isosurfaces are extracted from 3D SDF grids
+          using marching cubes. All shapes are composable via <code>|</code>, <code>-</code>, <code>/</code> operators.
+        </span>
+      </div>
+    </div>
+
+    <h3 class="subsection-title" style="margin-top:36px;">Code Example — Composing Shapes</h3>
+    <div class="code-wrap fade-up">
+      <div class="code-header">
+        <span class="code-lang">Python</span>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><span class="cm"># 2D: union of circle and translated box</span>
+<span class="kw">from</span> sdf2d <span class="kw">import</span> Circle2D, Box2D
+
+circle = Circle2D(radius=<span class="nb">0.3</span>)
+box    = Box2D(half_size=(<span class="nb">0.4</span>, <span class="nb">0.2</span>)).translate(<span class="nb">0.5</span>, <span class="nb">0.0</span>)
+shape  = circle | box              <span class="cm"># union operator</span>
+
+phi = shape.to_numpy(bounds=((<span class="nb">-1</span>,<span class="nb">1</span>), (<span class="nb">-1</span>,<span class="nb">1</span>)), resolution=(<span class="nb">128</span>, <span class="nb">128</span>))
+<span class="cm"># phi.shape == (128, 128);  phi &lt; 0 inside, phi &gt; 0 outside</span>
+
+<span class="cm"># 3D: sphere with box carved out</span>
+<span class="kw">from</span> sdf3d <span class="kw">import</span> Sphere3D, Box3D
+
+sphere  = Sphere3D(radius=<span class="nb">0.4</span>)
+box     = Box3D(half_size=(<span class="nb">0.2</span>, <span class="nb">0.2</span>, <span class="nb">0.2</span>))
+hollowed = sphere - box            <span class="cm"># subtract box from sphere</span>
+
+phi = hollowed.to_numpy(
+    bounds=((<span class="nb">-1</span>,<span class="nb">1</span>),(<span class="nb">-1</span>,<span class="nb">1</span>),(<span class="nb">-1</span>,<span class="nb">1</span>)), resolution=(<span class="nb">64</span>,<span class="nb">64</span>,<span class="nb">64</span>)
+)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     METAMATERIALS
+═══════════════════════════════════════════════════ -->
+<section id="metamaterials">
+  <div class="content section">
+    <div class="section-head">
+      <span class="section-num mono">03</span>
+      <h2 class="section-title serif">TPMS Metamaterials</h2>
+    </div>
+    <p class="section-lead">
+      Triply Periodic Minimal Surfaces and beam lattices are first-class <code>SDF3D</code>
+      subclasses. They accept <code>cell_size</code>, <code>thickness</code>, and
+      <code>repeat=(rx, ry, rz)</code> for tiling, and compose with all analytic primitives
+      via the same <code>|</code> / <code>-</code> / <code>/</code> operators.
+    </p>
+
+    <div class="tpms-grid">
+      <div class="tpms-card fade-up">
+        <p class="tpms-name">Gyroid3D</p>
+        <p class="tpms-label">Gyroid</p>
+        <p class="tpms-eq">sin x·cos y + sin y·cos z + sin z·cos x = 0</p>
+      </div>
+      <div class="tpms-card fade-up">
+        <p class="tpms-name">SchwarzP3D</p>
+        <p class="tpms-label">Schwarz P</p>
+        <p class="tpms-eq">cos x + cos y + cos z = 0</p>
+      </div>
+      <div class="tpms-card fade-up">
+        <p class="tpms-name">SchwarzD3D</p>
+        <p class="tpms-label">Schwarz Diamond</p>
+        <p class="tpms-eq">sin x·sin y·sin z + sin x·cos y·cos z + … = 0</p>
+      </div>
+      <div class="tpms-card fade-up">
+        <p class="tpms-name">Neovius3D</p>
+        <p class="tpms-label">Neovius</p>
+        <p class="tpms-eq">3(cos x + cos y + cos z) + 4 cos x·cos y·cos z = 0</p>
+      </div>
+      <div class="tpms-card fade-up">
+        <p class="tpms-name">BCCLattice3D</p>
+        <p class="tpms-label">BCC Beam Lattice</p>
+        <p class="tpms-eq">Body-centred cubic strut network</p>
+      </div>
+      <div class="tpms-card fade-up">
+        <p class="tpms-name">FCCLattice3D</p>
+        <p class="tpms-label">FCC Beam Lattice</p>
+        <p class="tpms-eq">Face-centred cubic strut network</p>
+      </div>
+    </div>
+
+    <div class="code-wrap fade-up" style="margin-top:28px;">
+      <div class="code-header">
+        <span class="code-lang">Python — Morphometric Analysis on a Gyroid</span>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><span class="kw">from</span> sdf3d <span class="kw">import</span> Gyroid3D
+<span class="kw">from</span> img2sdf <span class="kw">import</span> compute_morphometry_3d
+
+<span class="cm"># One unit cell, 0.3 shell half-width</span>
+gyroid = Gyroid3D(cell_size=<span class="nb">2.0</span>, thickness=<span class="nb">0.3</span>, repeat=(<span class="nb">1</span>, <span class="nb">1</span>, <span class="nb">1</span>))
+
+metrics = compute_morphometry_3d(
+    gyroid,
+    bounds=((<span class="nb">-1</span>, <span class="nb">1</span>), (<span class="nb">-1</span>, <span class="nb">1</span>), (<span class="nb">-1</span>, <span class="nb">1</span>)),
+    resolution=(<span class="nb">64</span>, <span class="nb">64</span>, <span class="nb">64</span>),
+)
+<span class="fn">print</span>(<span class="st">f"Volume:       {metrics['volume']:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Surface area: {metrics['surface_area']:.4f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Sphericity:   {metrics['sphericity']:.4f}"</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     METHODOLOGY
+═══════════════════════════════════════════════════ -->
+<section id="methodology">
+  <div class="content section">
+    <div class="section-head">
+      <span class="section-num mono">04</span>
+      <h2 class="section-title serif">Methodology</h2>
+    </div>
+    <p class="section-lead">
+      The PyAMorph pipeline transforms raw volumetric data into simulation-ready implicit
+      domains through a multi-stage variational approach, culminating in scalable AMReX output.
+    </p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <p class="pipe-num mono">STEP 01</p>
+        <p class="pipe-title serif">Segmentation</p>
+        <p class="pipe-desc">
+          True 3D Robust Chan-Vese active contour evolves a level-set to minimise an energy
+          functional, suppressing image noise to produce a precise SDF (φ &lt; 0 inside solid).
+        </p>
+      </div>
+      <div class="pipe-step">
+        <p class="pipe-num mono">STEP 02</p>
+        <p class="pipe-title serif">CSG Composition</p>
+        <p class="pipe-desc">
+          Image-derived SDFs are freely composed with analytic primitives and STL meshes
+          using union, subtraction, and intersection in a unified CSG scene graph.
+        </p>
+      </div>
+      <div class="pipe-step">
+        <p class="pipe-num mono">STEP 03</p>
+        <p class="pipe-title serif">AMR Evaluation</p>
+        <p class="pipe-desc">
+          Composite fields are evaluated onto hierarchical AMReX MultiFab structures.
+          AMR resolves the zero-level set at high resolution; bulk phases remain coarser.
+        </p>
+      </div>
+      <div class="pipe-step">
+        <p class="pipe-num mono">STEP 04</p>
+        <p class="pipe-title serif">Morphometry</p>
+        <p class="pipe-desc">
+          Morphometric descriptors — volume, surface area, sphericity, curvature, mean aspect
+          ratio, nearest-neighbour distances, and Voronoi cell volumes — are extracted automatically.
+        </p>
+      </div>
+    </div>
+
+    <h3 class="subsection-title">STL to SDF</h3>
+    <div class="code-wrap fade-up">
+      <div class="code-header">
+        <span class="code-lang">Python</span>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><span class="kw">from</span> stl2sdf <span class="kw">import</span> stl_to_geometry
+
+<span class="cm"># Convert any watertight STL mesh → composable SDF3D</span>
+geom = stl_to_geometry(<span class="st">"my_mesh.stl"</span>)
+
+<span class="cm"># Compose with analytic shapes</span>
+<span class="kw">from</span> sdf3d <span class="kw">import</span> Sphere3D
+result = geom - Sphere3D(<span class="nb">0.2</span>).translate(<span class="nb">0</span>, <span class="nb">0</span>, <span class="nb">0.3</span>)
+phi    = result.to_numpy(bounds=((<span class="nb">-1</span>,<span class="nb">1</span>),(<span class="nb">-1</span>,<span class="nb">1</span>),(<span class="nb">-1</span>,<span class="nb">1</span>)), resolution=(<span class="nb">64</span>,<span class="nb">64</span>,<span class="nb">64</span>))</pre>
+    </div>
+
+    <h3 class="subsection-title">AMReX Adaptive Mesh Output</h3>
+    <div class="code-wrap fade-up">
+      <div class="code-header">
+        <span class="code-lang">Python</span>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><span class="kw">import</span> amrex.space3d <span class="kw">as</span> amr
+<span class="kw">from</span> sdf3d <span class="kw">import</span> Sphere3D, Box3D, MultiFabGrid3D
+
+amr.initialize([])
+<span class="kw">try</span>:
+    real_box = amr.RealBox([<span class="nb">-1</span>,<span class="nb">-1</span>,<span class="nb">-1</span>], [<span class="nb">1</span>,<span class="nb">1</span>,<span class="nb">1</span>])
+    domain   = amr.Box(amr.IntVect(<span class="nb">0</span>,<span class="nb">0</span>,<span class="nb">0</span>), amr.IntVect(<span class="nb">63</span>,<span class="nb">63</span>,<span class="nb">63</span>))
+    geom     = amr.Geometry(domain, real_box, <span class="nb">0</span>, [<span class="nb">0</span>,<span class="nb">0</span>,<span class="nb">0</span>])
+    ba       = amr.BoxArray(domain); ba.max_size(<span class="nb">32</span>)
+    dm       = amr.DistributionMapping(ba)
+
+    grid  = MultiFabGrid3D(geom, ba, dm)
+    mf_a  = Sphere3D(<span class="nb">0.3</span>).to_multifab(grid)
+    mf_b  = Box3D((<span class="nb">0.2</span>, <span class="nb">0.2</span>, <span class="nb">0.2</span>)).to_multifab(grid)
+    mf_u  = grid.union(mf_a, mf_b)       <span class="cm"># min(a, b)</span>
+    mf_s  = grid.subtract(mf_b, mf_a)    <span class="cm"># box with sphere carved out</span>
+<span class="kw">finally</span>:
+    amr.finalize()</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     RESULTS
+═══════════════════════════════════════════════════ -->
+<section id="results">
+  <div class="content" style="padding-top:72px; padding-bottom:72px;">
+    <div class="section-head">
+      <span class="section-num mono">05</span>
+      <h2 class="section-title serif">Results</h2>
+    </div>
+    <p class="section-lead">
+      PyAMorph successfully demonstrated high-fidelity reconstruction and automated
+      statistical characterisation of complex porous microstructures. The framework
+      extracted 11 morphometric distributions per phase over an ensemble of segmented volumes.
+    </p>
+
+    <div class="fig-grid-2">
+      <div class="fig-card fade-up">
+        <div class="fig-img-wrap">
+          <img src="paper_image2.jpeg" class="img-full"
+               alt="3D porous microstructure reconstructed via Chan-Vese segmentation" />
+        </div>
+        <div class="fig-caption">
+          <span class="fig-label">FIG 5.1</span>
+          <span class="fig-desc">
+            3D porous microstructure generated via True 3D Robust Chan-Vese segmentation (φ &lt; 0 inside).
+            Rendered as a marching-cubes isosurface on an AMReX MultiFab grid.
+          </span>
+        </div>
+      </div>
+
+      <div class="fig-card fade-up">
+        <div class="fig-img-wrap">
+          <img src="paper_image1.jpeg" class="img-full"
+               alt="Probability distributions of morphometric descriptors" />
+        </div>
+        <div class="fig-caption">
+          <span class="fig-label">FIG 5.2</span>
+          <span class="fig-desc">
+            Probability distributions of 11 morphometric descriptors (CH 2-Phase segmentation).
+            KDE curves (red) are fitted to each descriptor across the particle ensemble.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics-grid" style="margin-top:36px;">
+      <div class="metric-cell fade-up">
+        <div class="metric-badge">V</div>
+        <p class="metric-name">Volume</p>
+        <p class="metric-desc">Voxel-summed solid phase volume per particle</p>
+      </div>
+      <div class="metric-cell fade-up">
+        <div class="metric-badge">A</div>
+        <p class="metric-name">Surface Area</p>
+        <p class="metric-desc">Marching-cubes triangle area integration</p>
+      </div>
+      <div class="metric-cell fade-up">
+        <div class="metric-badge">ψ</div>
+        <p class="metric-name">Sphericity</p>
+        <p class="metric-desc">Ratio of sphere surface area to actual surface area</p>
+      </div>
+      <div class="metric-cell fade-up">
+        <div class="metric-badge">d</div>
+        <p class="metric-name">Eff. Diameter</p>
+        <p class="metric-desc">Equivalent sphere diameter from volume</p>
+      </div>
+      <div class="metric-cell fade-up">
+        <div class="metric-badge">κ</div>
+        <p class="metric-name">Mean Curvature</p>
+        <p class="metric-desc">Integrated mean curvature over the surface</p>
+      </div>
+      <div class="metric-cell fade-up">
+        <div class="metric-badge">α</div>
+        <p class="metric-name">Aspect Ratio</p>
+        <p class="metric-desc">Bounding-box principal axis ratio</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     INSTALLATION
+═══════════════════════════════════════════════════ -->
+<section id="install">
+  <div class="content" style="padding-top:72px; padding-bottom:72px;">
+    <div class="section-head">
+      <span class="section-num mono">06</span>
+      <h2 class="section-title serif">Installation</h2>
+    </div>
+    <p class="section-lead">
+      pySdf uses <strong>Pixi</strong> — a Rust-based package manager that handles both
+      conda-forge and PyPI dependencies in a single unified environment, including GPU-enabled
+      pyAMReX and CUDA libraries.
+    </p>
+
+    <div class="install-grid">
+      <div>
+        <h3 class="subsection-title" style="margin-top:0;">Windows</h3>
+        <div class="code-wrap fade-up">
+          <div class="code-header">
+            <span class="code-lang">PowerShell</span>
+            <div class="code-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre>iwr -useb https://pixi.sh/install.ps1 | iex</pre>
+        </div>
+
+        <h3 class="subsection-title">Linux / macOS</h3>
+        <div class="code-wrap fade-up">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <div class="code-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre>curl -fsSL https://pixi.sh/install.sh | bash</pre>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="subsection-title" style="margin-top:0;">Clone &amp; Install</h3>
+        <div class="code-wrap fade-up">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <div class="code-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre>git clone https://github.com/ComPhysGroup/PyAMorph
+cd PyAMorph
+pixi install</pre>
+        </div>
+
+        <h3 class="subsection-title">Run Examples</h3>
+        <div class="code-wrap fade-up">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <div class="code-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre>pixi run gallery-2d    <span class="cm"># 2D shape gallery</span>
+pixi run gallery-3d    <span class="cm"># 3D shape gallery</span>
+pixi run test-cpu      <span class="cm"># 454 pure Python tests</span>
+pixi run test          <span class="cm"># all 481 tests incl. AMReX</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════ -->
+<footer>
+  <p style="margin-bottom:6px;">
+    pySdf &nbsp;·&nbsp; Submitted to INCAM 2026 &nbsp;·&nbsp;
+    <a href="mailto:pkseshadri@iitm.ac.in">pkseshadri@iitm.ac.in</a>
+  </p>
+  <p>
+    <a href="https://github.com/ComPhysGroup/PyAMorph" target="_blank">github.com/ComPhysGroup/PyAMorph</a>
+    &nbsp;·&nbsp; SDF formulas adapted from
+    <a href="https://iquilezles.org/articles/distfunctions/" target="_blank">iquilezles.org</a>
+  </p>
+</footer>
+
+<!-- ── Fade-up observer ─────────────────────────── -->
+<script>
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 50);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+</script>
+
+</body>
+</html>
